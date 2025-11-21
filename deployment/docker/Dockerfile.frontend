@@ -1,0 +1,28 @@
+﻿# Frontend (Streamlit) image
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY pyproject.toml setup.py requirements.txt /app/
+
+RUN apt-get update && apt-get install -y build-essential git && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+RUN pip install -e .
+
+COPY . /app
+
+RUN mkdir -p /app/logs
+VOLUME /app/logs
+
+EXPOSE 8501
+
+ENV STREAMLIT_SERVER_HEADLESS=true
+ENV STREAMLIT_SERVER_ENABLECORS=false
+ENV STREAMLIT_SERVER_PORT=8501
+
+CMD ["streamlit", "run", "app/main.py", "--server.port", "8501", "--server.headless", "true"]

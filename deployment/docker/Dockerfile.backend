@@ -1,0 +1,27 @@
+﻿# Backend image
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# system deps for some packages
+RUN apt-get update && apt-get install -y build-essential libpq-dev git && rm -rf /var/lib/apt/lists/*
+
+# copy only what's needed to speed up docker build cache
+COPY pyproject.toml setup.py requirements.txt /app/
+
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+RUN pip install -e .
+
+COPY . /app
+
+# create logs dir
+RUN mkdir -p /app/logs
+VOLUME /app/logs
+
+EXPOSE 8000
+
+CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
